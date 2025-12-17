@@ -120,4 +120,54 @@ def create_app(config: Dict[str, Any]) -> Flask:
         visits = load_visits(visits_path)
         return render_template("dashboard.html", visits=visits)
 
+    @app.route("/img/<token>")
+    def image_tracker(token: str):
+        """Tracking endpoint that shows an image page instead of redirect.
+
+        Usage example:
+        /img/<token>?src=https://example.com/image.jpg
+        """
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+        if ip and "," in ip:
+            ip = ip.split(",")[0].strip()
+
+        geo = geo_lookup(ip, ip_api) or {}
+
+        lat = geo.get("lat")
+        lon = geo.get("lon")
+        google_maps_url = None
+        if isinstance(lat, (int, float)) or isinstance(lon, (int, float)):
+            try:
+                lat_f = float(lat)
+                lon_f = float(lon)
+                google_maps_url = f"https://www.google.com/maps?q={lat_f},{lon_f}"
+            except Exception:
+                google_maps_url = None
+
+        ua_raw = request.headers.get("User-Agent")
+        ua_info = _parse_user_agent(ua_raw)
+
+        record = {
+            "time": datetime.now(timezone.utc).isoformat(),
+            "ip": ip,
+            "country": geo.get("country"),
+            "region": geo.get("regionName"),
+            "city": geo.get("city"),
+            "lat": lat,
+            "lon": lon,
+            "isp": geo.get("isp"),
+            "token": token,
+            "user_agent": ua_raw,
+            "browser": ua_info["browser"],
+            "os": ua_info["os"],
+            "google_maps_url": google_maps_url,
+        }
+
+        visits = load_visits(visits_path)
+        visits.append(record)
+        save_visits(visits_path, visits)
+
+        image_url = request.args.get("src") or "https://via.placeholder.com/800x500.png?text=Image"
+        return render_template("image_page.html", image_url=image_url)
+
     return app

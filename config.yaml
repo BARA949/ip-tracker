@@ -1,8 +1,17 @@
 tracking:
   # الرابط الافتراضي الذي يتم التحويل إليه إذا لم يُمرَّر next=
   default_target_url: "https://example.com/"
-  # خدمة تحديد الموقع الجغرافي من خلال IP
-  ip_info_api: "http://ip-api.com/json"
+  # إعدادات خدمة تحديد الموقع الجغرافي من خلال IP
+  # provider يمكن أن يكون:
+  #   - ipapi  (الافتراضي، يستخدم http://ip-api.com)
+  #   - ipinfo (يستخدم https://ipinfo.io)
+  provider: "ipinfo"
+  # عنوان خدمة ip-api (يمكن تركه كما هو)
+  ip_api_url: "http://ip-api.com/json"
+  # إعدادات ipinfo (اختيارية)
+  ipinfo_base_url: "https://ipinfo.io"
+  # يمكن تركه فارغًا للاستخدام المجاني المحدود أو وضع API Token من ipinfo.io
+  ipinfo_token: "1dca38f8c5e808"
 
 server:
   host: "0.0.0.0"
